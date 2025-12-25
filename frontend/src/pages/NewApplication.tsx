@@ -60,6 +60,7 @@ export default function NewApplication() {
   const totalCollateralValue = selectedCollaterals.reduce((sum, c) => sum + c.currentValue, 0);
   const requestedAmount = parseFloat(loanDetails.requestedAmount) || 0;
   const calculatedLTV = totalCollateralValue > 0 ? (requestedAmount / totalCollateralValue) * 100 : 0;
+  const isLtvExceeded = calculatedLTV > (selectedProduct?.maxLTV ?? 100);
 
   const handleAddCollateral = (collateralId: string) => {
     const collateral = availableCollaterals.find(c => c._id === collateralId);
@@ -80,7 +81,7 @@ export default function NewApplication() {
       return loanDetails.loanProductId && loanDetails.requestedAmount && loanDetails.tenure;
     }
     if (currentStep === 3) {
-      return selectedCollaterals.length > 0 && calculatedLTV <= (selectedProduct?.maxLTV || 100);
+      return selectedCollaterals.length > 0;
     }
     return true;
   };
@@ -381,13 +382,16 @@ export default function NewApplication() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Calculated LTV</span>
-                    <span className={`font-medium ${
-                      calculatedLTV > (selectedProduct?.maxLTV || 100) ? 'text-destructive' : 'text-success'
-                    }`}>
+                    <span className={`font-medium ${isLtvExceeded ? 'text-destructive' : 'text-success'}`}>
                       {calculatedLTV.toFixed(1)}%
                       {selectedProduct && ` (Max: ${selectedProduct.maxLTV}%)`}
                     </span>
                   </div>
+                  {isLtvExceeded && (
+                    <p className="mt-2 text-xs text-destructive">
+                      LTV exceeds the selected product's maximum. Adjust amount or collateral.
+                    </p>
+                  )}
                 </div>
               )}
             </CardContent>
